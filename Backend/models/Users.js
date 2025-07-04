@@ -34,6 +34,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    location: {
+      type: String,
+      default: "",
+    },
     friends: [
       {
         type: Schema.Types.ObjectId,

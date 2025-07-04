@@ -2,7 +2,9 @@ require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
-const authRoute = require("./routes/auth.route.js");
+const authRoutes = require("./routes/auth.route.js");
+const userRoutes = require("./routes/user.route.js");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -11,6 +13,7 @@ const MONGO_URL = process.env.MONGO_URL;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 const main = async () => {
   await mongoose.connect(MONGO_URL);
@@ -20,7 +23,8 @@ main()
   .then(() => console.log("DB Connected Successfully"))
   .catch((err) => console.log(`Database Connection Error: ${err}`));
 
-app.use("/auth", authRoute);
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.send(`Server is running`);
