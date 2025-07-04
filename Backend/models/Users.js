@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const { Schema } = mongoose;
 
-const userSchema = mongoose.Schema(
+const userSchema = new Schema(
   {
     fullName: {
       type: String,
@@ -12,11 +12,15 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      validate: {
+        validator: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+        message: (props) => `"${props.value}" is not a valid email`,
+      },
     },
     password: {
       type: String,
       required: true,
-      minlength: true,
+      minlength: 6,
     },
     bio: {
       type: String,
@@ -30,15 +34,15 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    friends: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+    friends: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
-
-const User = mongoose.model("User", userSchema);
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
@@ -51,4 +55,5 @@ userSchema.pre("save", async function (next) {
   }
 });
 
+const User = mongoose.model("User", userSchema);
 module.exports = User;

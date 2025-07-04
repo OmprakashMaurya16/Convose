@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT;
 const MONGO_URL = process.env.MONGO_URL;
 
-app.use(express.json);
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const main = async () => {

@@ -1,33 +1,33 @@
 const User = require("../models/Users");
+const jwt = require("jsonwebtoken");
 
 module.exports.signup = async (req, res) => {
   const { fullName, email, password } = req.body;
+
   try {
-    if (!email || !password || !fullName) {
+    if (!fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
     if (password.length < 6) {
       return res
         .status(400)
-        .json({ message: "Password must be at least of 6 characters" });
+        .json({ message: "Password must be at least 6 characters" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (await User.findOne({ email })) {
       return res
         .status(400)
         .json({ message: "Email already exists, please use a different one" });
     }
 
     const randomIdx = Math.floor(Math.random() * 100) + 1;
-    const randomAvatar = `https://avatar.iran.liara.run/public/${randomIdx}.png`;
+    const profilePic = `https://avatar.iran.liara.run/public/${randomIdx}.png`;
 
-    const newUser = new User.create({
+    const newUser = await User.create({
+      fullName,
       email,
       password,
-      fullName,
-      profilePic: randomAvatar,
+      profilePic,
     });
 
     const token = jwt.sign(
@@ -45,10 +45,10 @@ module.exports.signup = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
     });
 
-    res.send(201).json({ success: true, user: newUser });
+    return res.status(201).json({ success: true, user: newUser });
   } catch (error) {
-    console.log("Error in signup controller", error);
-    res.send(500).json({ message: "Internal server error" });
+    console.error("Error in signup controller:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -59,5 +59,3 @@ module.exports.login = (req, res) => {
 module.exports.logout = (req, res) => {
   res.send("logout");
 };
-
-module.exports.login;
