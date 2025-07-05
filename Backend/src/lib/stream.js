@@ -1,3 +1,4 @@
+const e = require("express");
 const { StreamChat } = require("stream-chat");
 require("dotenv").config();
 
@@ -17,5 +18,14 @@ module.exports.upsertStreamUser = async (userData) => {
   } catch (error) {
     console.error("Error upserting stream user", error);
     throw error;
+  }
+};
+
+module.exports.generateStreamToken = async (userId) => {
+  try {
+    const userIdString = userId.toString();
+    return streamClient.createToken(userIdString);
+  } catch (error) {
+    console.log("Error generating Stream Token:", error);
   }
 };

@@ -2,8 +2,9 @@ require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
-const authRoutes = require("./routes/auth.route.js");
-const userRoutes = require("./routes/user.route.js");
+const authRoutes = require("./src/routes/auth.route.js");
+const userRoutes = require("./src/routes/user.route.js");
+const chatRoutes = require("./src/routes/chat.route.js");
 const cookieParser = require("cookie-parser");
 
 const app = express();
@@ -25,6 +26,7 @@ main()
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+app.use("/chats", chatRoutes);
 
 app.get("/", (req, res) => {
   res.send(`Server is running`);

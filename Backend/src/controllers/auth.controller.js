@@ -1,5 +1,5 @@
 const { upsertStreamUser } = require("../lib/stream");
-const User = require("../models/Users");
+const User = require("../models/Users.js");
 const jwt = require("jsonwebtoken");
 
 module.exports.signup = async (req, res) => {

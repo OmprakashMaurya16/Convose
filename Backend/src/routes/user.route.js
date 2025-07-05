@@ -6,6 +6,7 @@ const {
   sendFriendRequest,
   acceptFriendRequest,
   getFriendRequest,
+  getOutgoingFriendRequest,
 } = require("../controllers/user.controller.js");
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.get("/friends", isLoggedIn, getMyFriends);
 router.post("/friend_request/:id", isLoggedIn, sendFriendRequest);
 router.put("/friend_request/:id/accept", isLoggedIn, acceptFriendRequest);
 
-router.get("/friend_request/:id/accept", isLoggedIn, getFriendRequest);
+router.get("/friend_request", isLoggedIn, getFriendRequest);
+router.get("/friend_request_send", isLoggedIn, getOutgoingFriendRequest);
 
 module.exports = router;
