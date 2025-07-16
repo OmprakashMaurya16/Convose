@@ -15,4 +15,8 @@ router.post("/logout", logout);
 
 router.post("/onboarding", isLoggedIn, onboard);
 
+router.get("/me", isLoggedIn, (req, res) => {
+  res.status(200).json({ success: true, user: req.user });
+});
+
 module.exports = router;
