@@ -10,9 +10,10 @@ import ChatPage from "./Pages/ChatPage.jsx";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import { axiosInstance } from "./lib/axios.js";
+import PageLoader from "./components/PageLoader.jsx";
 
 const App = () => {
-  const { data: authData } = useQuery({
+  const { data: authData, isLoading } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
       const res = await axiosInstance.get("/auth/me");
@@ -22,6 +23,8 @@ const App = () => {
   });
 
   const authUser = authData?.user;
+
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="h-screen">

@@ -83,15 +83,21 @@ const SignupPage = () => {
 
           <button
             type="submit"
-            disabled={isPending}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
           >
-            {isPending ? "Creating..." : "Create Account"}
+            {isPending ? (
+              <>
+                <span className="loading loading-spinner loading-xs"></span>{" "}
+                Loading...
+              </>
+            ) : (
+              "Create Account"
+            )}
           </button>
 
           {error && (
             <p className="text-red-400 text-sm text-center mt-2">
-              {error.message || "Signup failed. Please try again."}
+              {error.response.data.message}
             </p>
           )}
         </form>
