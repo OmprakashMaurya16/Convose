@@ -21,8 +21,8 @@ module.exports.signup = async (req, res) => {
         .json({ message: "Email already exists, please use a different one" });
     }
 
-    const randomIdx = Math.floor(Math.random() * 100) + 1;
-    const profilePic = `https://avatar.iran.liara.run/public/${randomIdx}.png`;
+    const randomIdx = Math.random().toString(36).substring(7);
+    const profilePic = `https://api.dicebear.com/7.x/adventurer/svg?seed=${randomIdx}`;
 
     const newUser = await User.create({
       fullName,
@@ -109,7 +109,7 @@ module.exports.logout = (req, res) => {
 module.exports.onboard = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { fullName, bio, location } = req.body;
+    const { fullName, bio, location, profilePic } = req.body;
 
     if (!fullName || !bio || !location) {
       return res.status(400).json({
@@ -128,6 +128,7 @@ module.exports.onboard = async (req, res) => {
         fullName,
         bio,
         location,
+        profilePic,
         isOnboarded: true,
       },
       { new: true }
