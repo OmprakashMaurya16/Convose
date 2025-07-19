@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "../lib/axios.js";
+import useSignUp from "../hooks/useSignUp.js";
 
 const SignupPage = () => {
   const [signupData, setSignupData] = useState({
@@ -9,22 +8,11 @@ const SignupPage = () => {
     password: "",
   });
 
-  const queryClient = useQueryClient();
-
-  const { mutate, isPending, error } = useMutation({
-    mutationFn: async () => {
-      const response = await axiosInstance.post("/auth/signup", signupData);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
-    },
-  });
+  const { isPending, error, signupMutation } = useSignUp();
 
   const handleSignup = (event) => {
     event.preventDefault();
-    console.log("Signup data:", signupData);
-    mutate();
+    signupMutation(signupData);
   };
 
   return (
