@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { axiosInstance } from "../lib/axios.js";
 import { Link } from "react-router-dom";
 import { User, MapPin, CheckCircle, UserPlus } from "lucide-react";
@@ -9,28 +9,44 @@ const HomePage = () => {
   const queryClient = useQueryClient();
   const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
 
-  const { data: friends = [], isLoading: loadingFriends } = useQuery({
+  const {
+    data: friends = [],
+    isLoading: loadingFriends,
+    error: friendsError,
+  } = useQuery({
     queryKey: ["friends"],
     queryFn: async () => {
       const { data } = await axiosInstance.get("/users/friends");
       return data;
     },
+    onError: (error) => {
+      console.error("Failed to fetch friends:", error);
+    },
   });
 
-  const { data: recommendedUsers = [], isLoading: loadingRecommended } =
-    useQuery({
-      queryKey: ["users"],
-      queryFn: async () => {
-        const { data } = await axiosInstance.get("/users");
-        return data;
-      },
-    });
+  const {
+    data: recommendedUsers = [],
+    isLoading: loadingRecommended,
+    error: recommendedError,
+  } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get("/users");
+      return data;
+    },
+    onError: (error) => {
+      console.error("Failed to fetch recommended users:", error);
+    },
+  });
 
-  const { data: outgoingFriendReqs } = useQuery({
+  const { data: outgoingFriendReqs = [], error: outgoingError } = useQuery({
     queryKey: ["outgoingFriendReqs"],
     queryFn: async () => {
       const { data } = await axiosInstance.get("/users/friend_request_send");
       return data;
+    },
+    onError: (error) => {
+      console.error("Failed to fetch outgoing friend requests:", error);
     },
   });
 
@@ -45,10 +61,12 @@ const HomePage = () => {
       await queryClient.cancelQueries(["outgoingFriendReqs"]);
       setOutgoingRequestsIds((prev) => new Set([...prev, userId]));
     },
-    onSuccess: () => {
+    onSuccess: (data, userId) => {
+      setOutgoingRequestsIds((prev) => new Set([...prev, userId]));
       queryClient.invalidateQueries(["outgoingFriendReqs"]);
     },
     onError: (error, userId) => {
+      console.error("Failed to send friend request:", error);
       setOutgoingRequestsIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(userId);
@@ -59,18 +77,40 @@ const HomePage = () => {
 
   useEffect(() => {
     if (outgoingFriendReqs?.length) {
-      const ids = outgoingFriendReqs.map(
-        (req) => req.receiverId || req.userId || req._id || req.id
-      );
-      setOutgoingRequestsIds(new Set(ids));
-    } else {
-      setOutgoingRequestsIds(new Set());
+      const ids = outgoingFriendReqs.map((req) => req.recipient._id);
+      setOutgoingRequestsIds((prev) => {
+        const serverIds = new Set(ids);
+        const currentIds = new Set([...prev]);
+        return new Set([...serverIds, ...currentIds]);
+      });
     }
   }, [outgoingFriendReqs]);
 
-  const handleSendRequest = (userId) => {
-    sendRequestMutation(userId);
-  };
+  const handleSendRequest = useCallback(
+    (userId) => {
+      if (!outgoingRequestsIds.has(userId)) {
+        sendRequestMutation(userId);
+      }
+    },
+    [sendRequestMutation, outgoingRequestsIds]
+  );
+
+  if (friendsError || recommendedError || outgoingError) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
+        <div className="container mx-auto">
+          <div className="bg-red-800 border border-red-700 rounded-lg p-6 text-center">
+            <h3 className="font-medium text-white mb-2">
+              Something went wrong
+            </h3>
+            <p className="text-red-200 text-sm">
+              Please try refreshing the page
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white">
@@ -135,12 +175,12 @@ const HomePage = () => {
                       <div className="flex items-center gap-3">
                         <img
                           src={user.profilePic || "/default-avatar.png"}
-                          alt={user.fullName}
+                          alt={user.fullName || "User"}
                           className="w-12 h-12 rounded-full object-cover"
                         />
                         <div>
                           <h3 className="font-medium text-white">
-                            {user.fullName}
+                            {user.fullName || "Unknown User"}
                           </h3>
                           {user.location && (
                             <div className="flex items-center text-xs text-gray-400 mt-1">
@@ -156,7 +196,7 @@ const HomePage = () => {
                         </p>
                       )}
                       <button
-                        className={`w-full py-2 px-3 text-sm font-medium rounded-lg flex items-center justify-center gap-2 ${
+                        className={`w-full py-2 px-3 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-colors ${
                           hasRequestBeenSent
                             ? "bg-green-600 text-white cursor-not-allowed"
                             : "bg-blue-600 text-white hover:bg-blue-700"
